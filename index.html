@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Hate Speech Invaders</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        @font-face {
+            font-family: Arcadepix;
+            src: url('assets/ARCADEPI.TTF');
+            font-weight: 400;
+            font-weight: normal;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        * {
+            font-family: Arcadepix;
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <div style="font-family:font1; position:absolute; left:-1000px; visibility:hidden;">.</div>
+
+    <script type="text/javascript">
+
+        var config = {
+            type: Phaser.AUTO,
+            // width: 800,
+            // height: 600,
+            width: window.innerWidth,
+            height: window.innerHeight,
+            autoResize: true,
+            pixelArt: true,
+            roundPixels: true,
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 0 },
+                    debug: false
+                }
+            },
+            scene: {
+                preload: preload,
+                create: create,
+                update: update,
+                resize: resize
+            }
+        };
+
+        var player;
+        var playerbullets;
+        var badguy;
+        var hatespeech;
+        var cursors;
+        var score = 0;
+        var gameOver = false;
+        var scoreText;
+        var explosion;
+        var playerShootSwitch;
+    
+        var game = new Phaser.Game(config);
+
+        function preload() {
+            this.load.image('sky', 'assets/sky.png');
+            //this.load.image('badguy', 'assets/badguy.png');
+            this.load.image('hatespeech', 'assets/hatespeech.png');
+            this.load.image('playerbullet', 'assets/playerbullet.png');
+            this.load.spritesheet('player', 'assets/badguy.png', { frameWidth: 32, frameHeight: 48 });
+            this.load.spritesheet('explosion', 'assets/explosion-6.png', { frameWidth: 48, frameHeight: 48 });
+            this.load.image('badguy', 'assets/placeholder2.png');
+
+        }
+
+        function create() {
+
+            //  A simple background for our game
+            this.add.image(400, 300, 'sky');
+
+            // //  The platforms group contains the ground and the 2 ledges we can jump on
+            // platforms = this.physics.add.staticGroup();
+
+            // //  Here we create the ground.
+            // //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
+            // platforms.create(400, 568, 'ground').setScale(2).refreshBody();
+
+            // //  Now let's create some ledges
+            // platforms.create(600, 400, 'ground');
+            // platforms.create(50, 250, 'ground');
+            // platforms.create(750, 220, 'ground');
+
+            // The player and its settings
+            player = this.physics.add.sprite((window.innerWidth / 2), 550, 'player');
+
+            //  Player physics properties. Give the little guy a slight bounce.
+            player.setBounce(0.2);
+            player.setCollideWorldBounds(true);
+
+            //  Our player animations, turning, walking left and walking right.
+            this.anims.create({
+                key: 'left',
+                frames: this.anims.generateFrameNumbers('player', { start: 0, end: 3 }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+            this.anims.create({
+                key: 'turn',
+                frames: [{ key: 'player', frame: 4 }],
+                frameRate: 20
+            });
+
+            this.anims.create({
+                key: 'right',
+                frames: this.anims.generateFrameNumbers('player', { start: 5, end: 8 }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+            this.anims.create({
+                key: 'explode',
+                frames: this.anims.generateFrameNumbers('explosion', { start: 0, end: 7 }),
+                frameRate: 20
+            });
+
+            // explosion = this.add.sprite('explosion');
+            // // animation will complete, the emit event
+            // explosion.on('animationcomplete', animComplete, this);
+            // explosion.play('explosion');
+
+            //  Input Events
+            cursors = this.input.keyboard.createCursorKeys();
+
+            console.log(window.innerWidth)
+            var areaDivider = ((window.innerWidth - 300) / 5)
+
+            //  bad guys' group - 6 x 6
+            for (let i = 0; i < 6; i++) {
+                badguy = this.physics.add.group({
+                    key: 'badguy',
+                    repeat: 5,
+                    setXY: { x: 150, y: 100 + (50 * i), stepX: areaDivider }
+                });
+            }
+
+            // badguy.children.iterate(function (child) {
+
+            //     //  Give each star a slightly different bounce
+            //     child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+
+            // });
+
+            //  The score
+            scoreText = this.add.text(16, 16, 'SCORE: 0', { fontFamily: 'Arcadepix', fontSize: '30px', fill: '#fff' });
+
+            playerbullets = this.physics.add.group();
+
+            // //  The score
+            // scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+
+            // //  Collide the player and the stars with the platforms
+            // this.physics.add.collider(player, platforms);
+            // this.physics.add.collider(stars, platforms);
+            // this.physics.add.collider(bombs, platforms);
+
+            // //  Checks to see if player bullet overlaps with any of the bad guys, if they do, call the killbadguy function
+            this.physics.add.overlap(playerbullets, badguy, killBadguy, null, this);
+
+            // this.physics.add.collider(player, bombs, hitBomb, null, this);
+
+
+            this.events.on('resize', resize, this);
+
+
+        }
+
+        function update() {
+            if (gameOver) {
+                return;
+            }
+
+            if (cursors.left.isDown) {
+                player.setVelocityX(-160);
+
+                player.anims.play('left', true);
+            }
+            else if (cursors.right.isDown) {
+                player.setVelocityX(160);
+
+                player.anims.play('right', true);
+            }
+            else {
+                player.setVelocityX(0);
+
+                player.anims.play('turn');
+            }
+
+            if (cursors.space.isDown) {
+                if (!playerShootSwitch) {
+                //scoreText = this.add.text(16, 40, 'SPACE DOWN', { fontFamily: 'Arcadepix', fontSize: '30px', fill: '#fff' });
+                //scoreText = this.add.text(16, 40, 'SPACE DOWN', { fontFamily: 'Arcadepix', fontSize: '30px', fill: '#000' });
+                // player.setData("isShooting", true);
+              
+
+                shoot();
+         
+                // ADD SHOOT DELAY
+                }
+            } else {
+                playerShootSwitch = false;
+                //scoreText = this.add.text(16, 40, 'SPACE UP', { fontFamily: 'Arcadepix', fontSize: '30px', fill: '#fff' });
+                // this.player.setData("isShooting", false);
+            }
+
+            game.renderer.resize(window.innerWidth, window.innerHeight, 1.0);
+
+        }
+
+        function shoot() {
+
+            var x = player.x;
+                var y = player.y;
+
+                //setTimeout(function(){ CONTENT }, 400);
+               
+                var playerbullet = playerbullets.create(x, (y - 20), 'playerbullet');
+                //playerbullet.setBounce(1);
+
+                
+                playerbullet.setCollideWorldBounds(false);
+                playerbullet.setVelocity(0, -600);
+                playerbullet.allowGravity = false;
+                playerShootSwitch = true;
+        }
+
+        function resize(width, height) {
+            if (width === undefined) { width = this.sys.game.config.width; }
+            if (height === undefined) { height = this.sys.game.config.height; }
+
+            //this.cameras.resize(width, height);
+            //this.physics.world.setBounds(x, y, width, height, true, true, true, true);
+            //this.cameras.main.setBounds(0, 0, width, height);
+
+            //this.bg.setSize(width, height);
+            //this.logo.setPosition(width / 2, height / 2);
+        }
+
+        function killBadguy(playerbullet, badguy) {
+
+            playerbullet.disableBody(true, true);
+            badguy.anims.play('explode', true);
+            setTimeout(function(){badguy.disableBody(true, true)}, 400);
+
+            //  Add and update the score
+            score += 5;
+            scoreText.setText('SCORE: ' + score);
+
+            // if (badguy.countActive(true) === 0) {
+            //     // Win game == ???
+            // }
+        }
+
+//         function animComplete (animation, frame)
+// {
+//     //  Animation is over, let's fade the sprite out
+//     this.tweens.add({
+//         targets: explosion,
+//         duration: 3000,
+//         alpha: 0
+//     });
+// }
+
+        window.addEventListener('resize', () => {
+            game.resize(window.innerWidth, window.innerHeight);
+            //scene.cameras.main.setViewport(0,0,width,height);
+        });
+
+    </script>
+</body>
+
+</html>
