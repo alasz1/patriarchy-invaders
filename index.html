@@ -75,6 +75,7 @@
             this.load.image('playerbullet', 'assets/playerbullet.png');
             this.load.spritesheet('player', 'assets/badguy.png', { frameWidth: 32, frameHeight: 48 });
             this.load.spritesheet('explosion', 'assets/explosion-6.png', { frameWidth: 48, frameHeight: 48 });
+            this.load.spritesheet('explosion2', 'assets/explosion-2.png', { frameWidth: 64, frameHeight: 64 });
             this.load.image('badguy', 'assets/placeholder2.png');
             this.load.image('badguybullet', 'assets/kupla1pieni.png');
         }
@@ -86,11 +87,12 @@
             
             // Set world boundaries based on initial screen size
 
+            // BELOW FOR SMALL SCREENS -> ADD L&R MARGINS FOR WIDER SCREENS
 
             var width = this.sys.game.config.width;
             var height = this.sys.game.config.height;
             // set top x&y coordinates & width&height of boundary
-            this.physics.world.setBounds(10,0, (width -200), height, true, true, true, true);
+            this.physics.world.setBounds(10,0, (width - 20), height, true, true, true, true);
 
             // //  The platforms group contains the ground and the 2 ledges we can jump on
             // platforms = this.physics.add.staticGroup();
@@ -138,6 +140,12 @@
                 frameRate: 20
             });
 
+            this.anims.create({
+                key: 'explode2',
+                frames: this.anims.generateFrameNumbers('explosion2', { start: 0, end: 7 }),
+                frameRate: 20
+            });
+
             // explosion = this.add.sprite('explosion');
             // // animation will complete, the emit event
             // explosion.on('animationcomplete', animComplete, this);
@@ -180,8 +188,11 @@
             // this.physics.add.collider(stars, platforms);
             // this.physics.add.collider(bombs, platforms);
 
-            // //  Checks to see if player bullet overlaps with any of the bad guys, if they do, call the killbadguy function
+            // Checks to see if player bullet overlaps with any of the bad guys/badguybullets
+            // -> if they do, call the killbadguy/killbadguybullet function
+
             this.physics.add.overlap(playerbullets, badguys, killBadguy, null, this);
+            this.physics.add.overlap(playerbullets, badguybullets, killBadguyBullets, null, this);
 
             // this.physics.add.collider(player, bombs, hitBomb, null, this);
 
@@ -194,12 +205,24 @@
             var areaDivider = ((window.innerWidth - 400) / 2)
 
             for (let i=0; i<6; i++) {
+
+                // Create enemies
+
                 var x = areaDivider + (i * 80);
                 var badguy = badguys.create(x, 100, 'badguy');
                 badguy.setBounce(1);
                 badguy.setCollideWorldBounds(true);
                 badguy.setVelocity(40, 1);
                 badguy.allowGravity = false;
+
+                // Set enemies to shoot
+                
+                var x = badguy.x;
+                var y = badguy.y;
+                var badguybullet = badguybullets.create(x, (y + 20), 'badguybullet');
+                badguybullet.setCollideWorldBounds(false);
+                badguybullet.setVelocity(0, 50);
+                badguybullet.allowGravity = false;
             }
         }
 
@@ -207,6 +230,8 @@
             if (gameOver) {
                 return;
             }
+
+            // Map control keys
 
             if (cursors.left.isDown) {
                 player.setVelocityX(-160);
@@ -232,6 +257,7 @@
               
 
                 shoot();
+                
     
               
                 }
@@ -272,14 +298,7 @@
 
         function badguyShoot() {
 
-            // HOW TO GET SINGLE BAD GUYS SHOOT AT RANDOM?
 
-            var x = badguy.x;
-            var y = badguy.y;
-            var badguybullet = badguybullets.create(x, (y + 20), 'badguybullet');
-            badguybullet.setCollideWorldBounds(false);
-            badguybullet.setVelocity(0, 200);
-            badguybullet.allowGravity = false;
         }
 
         function resize(width, height) {
@@ -306,12 +325,30 @@
             setTimeout(function(){badguy.disableBody(true, true)}, 400);
 
             //  Add and update the score
-            score += 5;
-            scoreText.setText('SCORE: ' + score);
+            if (!badguy.score) {
+                score += 10;
+                scoreText.setText('SCORE: ' + score);
+                badguy.score = true;
+            }
 
             // if (badguy.countActive(true) === 0) {
             //     // Win game == ???
             // }
+        }
+
+        function killBadguyBullets(playerbullet, badguybullet) {
+
+            playerbullet.disableBody(true, true);
+            // badguybullet.disableBody(false, true);
+            badguybullet.anims.play('explode2', true);
+            setTimeout(function(){badguybullet.disableBody(true, true)}, 400);
+
+            //  Add and update the score
+            if (!badguybullet.score) {
+                score += 5;
+                scoreText.setText('SCORE: ' + score);
+                badguybullet.score = true;
+            }
         }
 
 //         function animComplete (animation, frame)
