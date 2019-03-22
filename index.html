@@ -56,7 +56,8 @@
 
         var player;
         var playerbullets;
-        var badguy;
+        var badguybullets;
+        var badguys;
         var hatespeech;
         var cursors;
         var score = 0;
@@ -75,13 +76,21 @@
             this.load.spritesheet('player', 'assets/badguy.png', { frameWidth: 32, frameHeight: 48 });
             this.load.spritesheet('explosion', 'assets/explosion-6.png', { frameWidth: 48, frameHeight: 48 });
             this.load.image('badguy', 'assets/placeholder2.png');
-
+            this.load.image('badguybullet', 'assets/kupla1pieni.png');
         }
 
         function create() {
 
             //  A simple background for our game
             this.add.image(400, 300, 'sky');
+            
+            // Set world boundaries based on initial screen size
+
+
+            var width = this.sys.game.config.width;
+            var height = this.sys.game.config.height;
+            // set top x&y coordinates & width&height of boundary
+            this.physics.world.setBounds(10,0, (width -200), height, true, true, true, true);
 
             // //  The platforms group contains the ground and the 2 ledges we can jump on
             // platforms = this.physics.add.staticGroup();
@@ -137,19 +146,20 @@
             //  Input Events
             cursors = this.input.keyboard.createCursorKeys();
 
-            console.log(window.innerWidth)
-            var areaDivider = ((window.innerWidth - 300) / 5)
+
 
             //  bad guys' group - 6 x 6
-            for (let i = 0; i < 6; i++) {
-                badguy = this.physics.add.group({
-                    key: 'badguy',
-                    repeat: 5,
-                    setXY: { x: 150, y: 100 + (50 * i), stepX: areaDivider }
-                });
-            }
+            // for (let i = 0; i < 6; i++) {
+            //     badguy = this.physics.add.group({
+            //         key: 'badguy',
+            //         repeat: 5,
+            //         setXY: { x: 150, y: 100 + (50 * i), stepX: areaDivider }
+            //     });
+            // }
 
-            // badguy.children.iterate(function (child) {
+            badguys = this.physics.add.group();
+
+            //  badguy.children.iterate(function (child) {
 
             //     //  Give each star a slightly different bounce
             //     child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
@@ -160,6 +170,7 @@
             scoreText = this.add.text(16, 16, 'SCORE: 0', { fontFamily: 'Arcadepix', fontSize: '30px', fill: '#fff' });
 
             playerbullets = this.physics.add.group();
+            badguybullets = this.physics.add.group();
 
             // //  The score
             // scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
@@ -170,14 +181,26 @@
             // this.physics.add.collider(bombs, platforms);
 
             // //  Checks to see if player bullet overlaps with any of the bad guys, if they do, call the killbadguy function
-            this.physics.add.overlap(playerbullets, badguy, killBadguy, null, this);
+            this.physics.add.overlap(playerbullets, badguys, killBadguy, null, this);
 
             // this.physics.add.collider(player, bombs, hitBomb, null, this);
 
 
             this.events.on('resize', resize, this);
 
+            // Spawn & set movement of enemies
 
+            console.log(window.innerWidth)
+            var areaDivider = ((window.innerWidth - 400) / 2)
+
+            for (let i=0; i<6; i++) {
+                var x = areaDivider + (i * 80);
+                var badguy = badguys.create(x, 100, 'badguy');
+                badguy.setBounce(1);
+                badguy.setCollideWorldBounds(true);
+                badguy.setVelocity(40, 1);
+                badguy.allowGravity = false;
+            }
         }
 
         function update() {
@@ -209,8 +232,8 @@
               
 
                 shoot();
-         
-                // ADD SHOOT DELAY
+    
+              
                 }
             } else {
                 playerShootSwitch = false;
@@ -219,6 +242,14 @@
             }
 
             game.renderer.resize(window.innerWidth, window.innerHeight, 1.0);
+
+
+
+            // Enemy movement
+
+            // badguy.setCollideWorldBounds(true);
+            // badguy.setVelocity(20, 0);
+            // badguy.allowGravity = false;
 
         }
 
@@ -239,12 +270,29 @@
                 playerShootSwitch = true;
         }
 
+        function badguyShoot() {
+
+            // HOW TO GET SINGLE BAD GUYS SHOOT AT RANDOM?
+
+            var x = badguy.x;
+            var y = badguy.y;
+            var badguybullet = badguybullets.create(x, (y + 20), 'badguybullet');
+            badguybullet.setCollideWorldBounds(false);
+            badguybullet.setVelocity(0, 200);
+            badguybullet.allowGravity = false;
+        }
+
         function resize(width, height) {
             if (width === undefined) { width = this.sys.game.config.width; }
             if (height === undefined) { height = this.sys.game.config.height; }
 
+            if (width > 800) {
+                width = 800;
+            }
+
+            console.log(width)
             //this.cameras.resize(width, height);
-            //this.physics.world.setBounds(x, y, width, height, true, true, true, true);
+            //this.physics.world.setBounds(this.x, this.y, width, height, true, true, true, true);
             //this.cameras.main.setBounds(0, 0, width, height);
 
             //this.bg.setSize(width, height);
