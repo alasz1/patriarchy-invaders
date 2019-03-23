@@ -72,11 +72,12 @@
             this.load.image('sky', 'assets/sky.png');
             //this.load.image('badguy', 'assets/badguy.png');
             this.load.image('hatespeech', 'assets/hatespeech.png');
-            this.load.image('playerbullet', 'assets/playerbullet.png');
-            this.load.spritesheet('player', 'assets/badguy.png', { frameWidth: 32, frameHeight: 48 });
+            this.load.image('playerbullet', 'assets/heart.png');
+            this.load.spritesheet('player', 'assets/hero-big.png', { frameWidth: 48, frameHeight: 60 });
+            this.load.spritesheet('player-idle', 'assets/hero-idle-big.png', { frameWidth: 48, frameHeight: 60 });
             this.load.spritesheet('explosion', 'assets/explosion-6.png', { frameWidth: 48, frameHeight: 48 });
             this.load.spritesheet('explosion2', 'assets/explosion-2.png', { frameWidth: 64, frameHeight: 64 });
-            this.load.image('badguy', 'assets/placeholder2.png');
+            this.load.spritesheet('badguy', 'assets/enemy.png', { frameWidth: 43, frameHeight: 59 });
             this.load.image('badguybullet', 'assets/kupla1pieni.png');
         }
 
@@ -116,22 +117,29 @@
             //  Our player animations, turning, walking left and walking right.
             this.anims.create({
                 key: 'left',
-                frames: this.anims.generateFrameNumbers('player', { start: 0, end: 3 }),
+                frames: this.anims.generateFrameNumbers('player', { start: 6, end: 11 }),
                 frameRate: 10,
                 repeat: -1
             });
 
             this.anims.create({
                 key: 'turn',
-                frames: [{ key: 'player', frame: 4 }],
+                frames: [{ key: 'player-idle', frame: 0 }],
                 frameRate: 20
             });
 
             this.anims.create({
                 key: 'right',
-                frames: this.anims.generateFrameNumbers('player', { start: 5, end: 8 }),
+                frames: this.anims.generateFrameNumbers('player', { start: 0, end: 5 }),
                 frameRate: 10,
                 repeat: -1
+            });
+
+            this.anims.create({
+                key: 'badguy',
+                frames: this.anims.generateFrameNumbers('badguy', { start: 0, end: 3 }),
+                frameRate: 10,
+                repeat: 1000000
             });
 
             this.anims.create({
@@ -210,6 +218,7 @@
 
                 var x = areaDivider + (i * 80);
                 var badguy = badguys.create(x, 100, 'badguy');
+                badguy.anims.play('badguy', true);
                 badguy.setBounce(1);
                 badguy.setCollideWorldBounds(true);
                 badguy.setVelocity(40, 1);
@@ -217,12 +226,21 @@
 
                 // Set enemies to shoot
                 
+                // HOW TO GET ALL ENEMIES SHOOT RANDOMLY?
+
+                //setInterval(function(){ 
+
                 var x = badguy.x;
                 var y = badguy.y;
+             
                 var badguybullet = badguybullets.create(x, (y + 20), 'badguybullet');
+            
                 badguybullet.setCollideWorldBounds(false);
                 badguybullet.setVelocity(0, 50);
                 badguybullet.allowGravity = false;
+                
+                //}, 1000);
+                
             }
         }
 
