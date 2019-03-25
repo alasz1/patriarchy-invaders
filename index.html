@@ -70,6 +70,7 @@
         var playerShootSwitch;
         var rndTimer = 1000;
         var timeToShoot;
+        var badguysKilled = 0;
 
         var game = new Phaser.Game(config);
 
@@ -237,9 +238,9 @@
 
             this.physics.add.overlap(playerbullets, badguys, killBadguy, null, this);
             this.physics.add.overlap(playerbullets, badguybullets, killBadguyBullets, null, this);
-            
+
             // Badguybullets bounce from each other (not working, why?)
-            
+
             this.physics.add.collider(badguybullets, badguybullets);
 
             // this.physics.add.collider(player, bombs, hitBomb, null, this);
@@ -257,7 +258,7 @@
             for (let i = 0; i < 6; i++) {
                 for (let j = 0; j < 6; j++) {
                     var x = areaDivider + (i * 80);
-                    var y = 60 + j * 70;
+                    var y = 60 + j * 60;
                     var badguy = badguys.create(x, y, 'badguy');
                     badguy.anims.play('badguy', true);
                     badguy.setBounce(1);
@@ -265,6 +266,8 @@
                     badguy.setVelocity(40, 1);
                     badguy.allowGravity = false;
                 }
+
+        
             }
 
             timeToShoot = this.time.addEvent({
@@ -273,7 +276,6 @@
                 callbackScope: this,
                 loop: true
             });
-
 
         }
 
@@ -381,6 +383,7 @@
 
             var rndBadguy = Math.floor(Math.random() * badguys.children.entries.length);
 
+            console.log(badguys)
             console.log(badguys.children.entries[rndBadguy].body.position.x)
 
             var x = badguys.children.entries[rndBadguy].body.position.x;
@@ -391,7 +394,7 @@
             var badguybullet = badguybullets.create(x, (y + 80), 'badguybullet' + rnd);
             badguybullet.setSize(100, 100);
             badguybullet.anims.play('badguybullet' + rnd, true);
-            
+
             //badguybullet.setBounce(1);
 
             badguybullet.setCollideWorldBounds(false);
@@ -432,6 +435,8 @@
 
         function killBadguy(playerbullet, badguy) {
 
+            var badguyVelocityX = badguy.body.velocity.x;
+            var badguyVelocityY = badguy.body.velocity.y;
 
             playerbullet.disableBody(true, true);
             badguy.anims.play('explode', true);
@@ -450,9 +455,15 @@
                 badguy.score = true;
             }
 
-            // if (badguy.countActive(true) === 0) {
-            //     // Win game == ???
-            // }
+            // Accelerate enemies after 5 shots
+            
+            badguysKilled += 1;
+
+            if (badguysKilled === 5) {
+                badguys.setVelocity((badguyVelocityX + (10 * Math.sign(badguyVelocityX))), badguyVelocityY + 2);
+                badguysKilled = 0;
+            }
+            console.log(badguysKilled)
         }
 
         function killBadguyBullets(playerbullet, badguybullet) {
