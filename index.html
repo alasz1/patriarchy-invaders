@@ -63,12 +63,18 @@
         var score = 0;
         var gameOver = false;
         var scoreText;
+        var soundText;
+        var soundConfig = true;
+        var soundSwitch;
         var explosion;
         var playerShootSwitch;
-    
+
         var game = new Phaser.Game(config);
 
         function preload() {
+
+            // Load graphics
+
             this.load.image('sky', 'assets/sky.png');
             //this.load.image('badguy', 'assets/badguy.png');
             this.load.image('hatespeech', 'assets/hatespeech.png');
@@ -78,14 +84,24 @@
             this.load.spritesheet('explosion', 'assets/explosion-6.png', { frameWidth: 48, frameHeight: 48 });
             this.load.spritesheet('explosion2', 'assets/explosion-2.png', { frameWidth: 64, frameHeight: 64 });
             this.load.spritesheet('badguy', 'assets/enemy.png', { frameWidth: 43, frameHeight: 59 });
-            this.load.image('badguybullet', 'assets/kupla1pieni.png');
+            this.load.spritesheet('badguybullet', 'assets/kuplat.png', { frameWidth: 100, frameHeight: 100 });
+
+            // Load sound effects
+
+            this.load.audio('shoot', 'assets/shoot.mp3', {
+                instances: 1
+            });
+            this.load.audio('hit', 'assets/hit2.wav', {
+                instances: 1
+            });
+
         }
 
         function create() {
 
             //  A simple background for our game
             this.add.image(400, 300, 'sky');
-            
+
             // Set world boundaries based on initial screen size
 
             // BELOW FOR SMALL SCREENS -> ADD L&R MARGINS FOR WIDER SCREENS
@@ -93,7 +109,7 @@
             var width = this.sys.game.config.width;
             var height = this.sys.game.config.height;
             // set top x&y coordinates & width&height of boundary
-            this.physics.world.setBounds(10,0, (width - 20), height, true, true, true, true);
+            this.physics.world.setBounds(10, 0, (width - 20), height, true, true, true, true);
 
             // //  The platforms group contains the ground and the 2 ledges we can jump on
             // platforms = this.physics.add.staticGroup();
@@ -154,6 +170,17 @@
                 frameRate: 20
             });
 
+            for (let i = 0; i < 13; i++) {
+                this.anims.create({
+                    key: ('badguybullet' + i),
+                    frames: this.anims.generateFrameNumbers('badguybullet', { start: i, end: i }),
+                    frameRate: 20
+                });
+            }
+
+            this.sound.add('shoot');
+            this.sound.add('hit');
+
             // explosion = this.add.sprite('explosion');
             // // animation will complete, the emit event
             // explosion.on('animationcomplete', animComplete, this);
@@ -161,6 +188,8 @@
 
             //  Input Events
             cursors = this.input.keyboard.createCursorKeys();
+            s = this.input.keyboard.addKeys(Phaser.Input.Keyboard.KeyCodes.S);
+
 
 
 
@@ -175,6 +204,8 @@
 
             badguys = this.physics.add.group();
 
+        
+
             //  badguy.children.iterate(function (child) {
 
             //     //  Give each star a slightly different bounce
@@ -183,7 +214,12 @@
             // });
 
             //  The score
-            scoreText = this.add.text(16, 16, 'SCORE: 0', { fontFamily: 'Arcadepix', fontSize: '30px', fill: '#fff' });
+            scoreText = this.add.text(6, 6, 'SCORE: 0', { fontFamily: 'Arcadepix', fontSize: '20px', fill: '#fff' });
+
+            // Sound config
+
+            soundText = this.add.text(166, 6, 'SOUND: ON', { fontFamily: 'Arcadepix', fontSize: '20px', fill: '#fff' });
+
 
             playerbullets = this.physics.add.group();
             badguybullets = this.physics.add.group();
@@ -212,7 +248,7 @@
             console.log(window.innerWidth)
             var areaDivider = ((window.innerWidth - 400) / 2)
 
-            for (let i=0; i<6; i++) {
+            for (let i = 0; i < 6; i++) {
 
                 // Create enemies
 
@@ -225,22 +261,26 @@
                 badguy.allowGravity = false;
 
                 // Set enemies to shoot
-                
+
                 // HOW TO GET ALL ENEMIES SHOOT RANDOMLY?
 
                 //setInterval(function(){ 
 
                 var x = badguy.x;
                 var y = badguy.y;
-             
-                var badguybullet = badguybullets.create(x, (y + 20), 'badguybullet');
-            
+
+                let rnd = Math.floor(Math.random() * 12);
+                console.log(rnd)
+                var badguybullet = badguybullets.create(x, (y + 20), 'badguybullet' + rnd);
+                badguybullet.setSize(100,100);
+                badguybullet.anims.play('badguybullet' + rnd, true);
+
                 badguybullet.setCollideWorldBounds(false);
                 badguybullet.setVelocity(0, 50);
                 badguybullet.allowGravity = false;
-                
+
                 //}, 1000);
-                
+
             }
         }
 
@@ -269,20 +309,37 @@
 
             if (cursors.space.isDown) {
                 if (!playerShootSwitch) {
-                //scoreText = this.add.text(16, 40, 'SPACE DOWN', { fontFamily: 'Arcadepix', fontSize: '30px', fill: '#fff' });
-                //scoreText = this.add.text(16, 40, 'SPACE DOWN', { fontFamily: 'Arcadepix', fontSize: '30px', fill: '#000' });
-                // player.setData("isShooting", true);
-              
+                    //scoreText = this.add.text(16, 40, 'SPACE DOWN', { fontFamily: 'Arcadepix', fontSize: '30px', fill: '#fff' });
+                    //scoreText = this.add.text(16, 40, 'SPACE DOWN', { fontFamily: 'Arcadepix', fontSize: '30px', fill: '#000' });
+                    // player.setData("isShooting", true);
 
-                shoot();
-                
-    
-              
+                    if (soundConfig) {
+                        this.sound.play('shoot');
+                    }
+
+                    shoot();
+
                 }
             } else {
                 playerShootSwitch = false;
                 //scoreText = this.add.text(16, 40, 'SPACE UP', { fontFamily: 'Arcadepix', fontSize: '30px', fill: '#fff' });
                 // this.player.setData("isShooting", false);
+            }
+
+            if (cursors.shift.isDown) {
+                if (!soundSwitch) {
+                    soundConfig = !soundConfig;
+                    if (soundConfig) {
+                        soundText.setText('SOUND: ON');
+                        soundConfig = true;
+                    } else {
+                        soundText.setText('SOUND: OFF');
+                        soundConfig = false;
+                    }
+                    soundSwitch = true;
+                }
+            } else {
+                soundSwitch = false;
             }
 
             game.renderer.resize(window.innerWidth, window.innerHeight, 1.0);
@@ -300,18 +357,18 @@
         function shoot() {
 
             var x = player.x;
-                var y = player.y;
+            var y = player.y;
 
-                //setTimeout(function(){ CONTENT }, 400);
-               
-                var playerbullet = playerbullets.create(x, (y - 20), 'playerbullet');
-                //playerbullet.setBounce(1);
+            //setTimeout(function(){ CONTENT }, 400);
 
-                
-                playerbullet.setCollideWorldBounds(false);
-                playerbullet.setVelocity(0, -600);
-                playerbullet.allowGravity = false;
-                playerShootSwitch = true;
+            var playerbullet = playerbullets.create(x, (y - 20), 'playerbullet');
+            //playerbullet.setBounce(1);
+
+
+            playerbullet.setCollideWorldBounds(false);
+            playerbullet.setVelocity(0, -600);
+            playerbullet.allowGravity = false;
+            playerShootSwitch = true;
         }
 
         function badguyShoot() {
@@ -338,12 +395,16 @@
 
         function killBadguy(playerbullet, badguy) {
 
+
             playerbullet.disableBody(true, true);
             badguy.anims.play('explode', true);
-            setTimeout(function(){badguy.disableBody(true, true)}, 400);
+            setTimeout(function () { badguy.disableBody(true, true) }, 400);
 
-            //  Add and update the score
+            //  Add and update the score, play sound
             if (!badguy.score) {
+                if (soundConfig) {
+                    this.sound.play('hit');
+                }
                 score += 10;
                 scoreText.setText('SCORE: ' + score);
                 badguy.score = true;
@@ -359,25 +420,28 @@
             playerbullet.disableBody(true, true);
             // badguybullet.disableBody(false, true);
             badguybullet.anims.play('explode2', true);
-            setTimeout(function(){badguybullet.disableBody(true, true)}, 400);
+            setTimeout(function () { badguybullet.disableBody(true, true) }, 400);
 
-            //  Add and update the score
+            //  Add and update the score, play sound
             if (!badguybullet.score) {
+                if (soundConfig) {
+                    this.sound.play('hit');
+                }
                 score += 5;
                 scoreText.setText('SCORE: ' + score);
                 badguybullet.score = true;
             }
         }
 
-//         function animComplete (animation, frame)
-// {
-//     //  Animation is over, let's fade the sprite out
-//     this.tweens.add({
-//         targets: explosion,
-//         duration: 3000,
-//         alpha: 0
-//     });
-// }
+        //         function animComplete (animation, frame)
+        // {
+        //     //  Animation is over, let's fade the sprite out
+        //     this.tweens.add({
+        //         targets: explosion,
+        //         duration: 3000,
+        //         alpha: 0
+        //     });
+        // }
 
         window.addEventListener('resize', () => {
             game.resize(window.innerWidth, window.innerHeight);
