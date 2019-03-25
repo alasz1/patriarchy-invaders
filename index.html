@@ -204,8 +204,6 @@
 
             badguys = this.physics.add.group();
 
-        
-
             //  badguy.children.iterate(function (child) {
 
             //     //  Give each star a slightly different bounce
@@ -266,18 +264,18 @@
 
                 //setInterval(function(){ 
 
-                var x = badguy.x;
-                var y = badguy.y;
+                // var x = badguy.x;
+                // var y = badguy.y;
 
-                let rnd = Math.floor(Math.random() * 12);
-                console.log(rnd)
-                var badguybullet = badguybullets.create(x, (y + 20), 'badguybullet' + rnd);
-                badguybullet.setSize(100,100);
-                badguybullet.anims.play('badguybullet' + rnd, true);
+                // let rnd = Math.floor(Math.random() * 12);
+                // console.log(rnd)
+                // var badguybullet = badguybullets.create(x, (y + 20), 'badguybullet' + rnd);
+                // badguybullet.setSize(100,100);
+                // badguybullet.anims.play('badguybullet' + rnd, true);
 
-                badguybullet.setCollideWorldBounds(false);
-                badguybullet.setVelocity(0, 50);
-                badguybullet.allowGravity = false;
+                // badguybullet.setCollideWorldBounds(false);
+                // badguybullet.setVelocity(0, 50);
+                // badguybullet.allowGravity = false;
 
                 //}, 1000);
 
@@ -342,6 +340,12 @@
                 soundSwitch = false;
             }
 
+            if (cursors.down.isDown) {
+
+            badguyShoot();
+            
+            }
+
             game.renderer.resize(window.innerWidth, window.innerHeight, 1.0);
 
 
@@ -373,6 +377,22 @@
 
         function badguyShoot() {
 
+            var rndBadguy = Math.floor(Math.random() * badguys.children.entries.length);
+
+            console.log(badguys.children.entries[rndBadguy].body.position.x)
+
+            var x = badguys.children.entries[rndBadguy].body.position.x;
+            var y = badguys.children.entries[rndBadguy].body.position.y;
+
+            let rnd = Math.floor(Math.random() * 12);
+            console.log(rnd)
+            var badguybullet = badguybullets.create(x, (y + 20), 'badguybullet' + rnd);
+            badguybullet.setSize(100, 100);
+            badguybullet.anims.play('badguybullet' + rnd, true);
+
+            badguybullet.setCollideWorldBounds(false);
+            badguybullet.setVelocity(0, 50);
+            badguybullet.allowGravity = false;
 
         }
 
