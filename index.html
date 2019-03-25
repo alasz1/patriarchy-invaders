@@ -237,6 +237,10 @@
 
             this.physics.add.overlap(playerbullets, badguys, killBadguy, null, this);
             this.physics.add.overlap(playerbullets, badguybullets, killBadguyBullets, null, this);
+            
+            // Badguybullets bounce from each other (not working, why?)
+            
+            this.physics.add.collider(badguybullets, badguybullets);
 
             // this.physics.add.collider(player, bombs, hitBomb, null, this);
 
@@ -248,39 +252,19 @@
             console.log(window.innerWidth)
             var areaDivider = ((window.innerWidth - 400) / 2)
 
+            // Create enemies
+
             for (let i = 0; i < 6; i++) {
-
-                // Create enemies
-
-                var x = areaDivider + (i * 80);
-                var badguy = badguys.create(x, 100, 'badguy');
-                badguy.anims.play('badguy', true);
-                badguy.setBounce(1);
-                badguy.setCollideWorldBounds(true);
-                badguy.setVelocity(40, 1);
-                badguy.allowGravity = false;
-
-                // Set enemies to shoot
-
-                // HOW TO GET ALL ENEMIES SHOOT RANDOMLY?
-
-                //setInterval(function(){ 
-
-                // var x = badguy.x;
-                // var y = badguy.y;
-
-                // let rnd = Math.floor(Math.random() * 12);
-                // console.log(rnd)
-                // var badguybullet = badguybullets.create(x, (y + 20), 'badguybullet' + rnd);
-                // badguybullet.setSize(100,100);
-                // badguybullet.anims.play('badguybullet' + rnd, true);
-
-                // badguybullet.setCollideWorldBounds(false);
-                // badguybullet.setVelocity(0, 50);
-                // badguybullet.allowGravity = false;
-
-                //}, 1000);
-
+                for (let j = 0; j < 6; j++) {
+                    var x = areaDivider + (i * 80);
+                    var y = 60 + j * 70;
+                    var badguy = badguys.create(x, y, 'badguy');
+                    badguy.anims.play('badguy', true);
+                    badguy.setBounce(1);
+                    badguy.setCollideWorldBounds(true);
+                    badguy.setVelocity(40, 1);
+                    badguy.allowGravity = false;
+                }
             }
 
             timeToShoot = this.time.addEvent({
@@ -403,10 +387,12 @@
             var y = badguys.children.entries[rndBadguy].body.position.y;
 
             let rnd = Math.floor(Math.random() * 12);
-            console.log(rnd)
-            var badguybullet = badguybullets.create(x, (y + 20), 'badguybullet' + rnd);
+            console.log(rnd);
+            var badguybullet = badguybullets.create(x, (y + 80), 'badguybullet' + rnd);
             badguybullet.setSize(100, 100);
             badguybullet.anims.play('badguybullet' + rnd, true);
+            
+            //badguybullet.setBounce(1);
 
             badguybullet.setCollideWorldBounds(false);
             badguybullet.setVelocity(0, 50);
@@ -449,7 +435,10 @@
 
             playerbullet.disableBody(true, true);
             badguy.anims.play('explode', true);
-            setTimeout(function () { badguy.disableBody(true, true) }, 400);
+            // setTimeout(function () { badguy.disableBody(true, true) }, 400);
+
+            // Crashes when last badguy is destroyed! (change to disableBody?)
+            setTimeout(function () { badguy.destroy(true) }, 400);
 
             //  Add and update the score, play sound
             if (!badguy.score) {
