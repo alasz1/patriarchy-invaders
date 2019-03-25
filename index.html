@@ -68,6 +68,8 @@
         var soundSwitch;
         var explosion;
         var playerShootSwitch;
+        var rndTimer = 1000;
+        var timeToShoot;
 
         var game = new Phaser.Game(config);
 
@@ -280,6 +282,15 @@
                 //}, 1000);
 
             }
+
+            timeToShoot = this.time.addEvent({
+                delay: rndTimer,
+                callback: badguyShoot,
+                callbackScope: this,
+                loop: true
+            });
+
+
         }
 
         function update() {
@@ -340,15 +351,22 @@
                 soundSwitch = false;
             }
 
-            if (cursors.down.isDown) {
+            // if (cursors.down.isDown) {
 
-            badguyShoot();
-            
-            }
+            // badguyShoot();
+
+            // }
+
+            // if (!timeToShoot) {
+            //     setTimeout(badguyShoot(),1000);
+            // }
+
+            // if (timeToShoot) {
+            //     badguyShoot()
+            // }
+
 
             game.renderer.resize(window.innerWidth, window.innerHeight, 1.0);
-
-
 
             // Enemy movement
 
@@ -394,7 +412,20 @@
             badguybullet.setVelocity(0, 50);
             badguybullet.allowGravity = false;
 
+            rndTimer = Math.floor(Math.random() * 3000);
+
+            timeToShoot.reset({
+                delay: Phaser.Math.Between(100, 5000),
+                callback: badguyShoot,
+                callbackScope: this,
+                loop: true
+            });
+
         }
+
+        // function badguyShootSwitch() {
+        //     timeToShoot = true;
+        // }
 
         function resize(width, height) {
             if (width === undefined) { width = this.sys.game.config.width; }
