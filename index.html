@@ -238,6 +238,7 @@
 
             this.physics.add.overlap(playerbullets, badguys, killBadguy, null, this);
             this.physics.add.overlap(playerbullets, badguybullets, killBadguyBullets, null, this);
+            //this.physics.add.overlap(badguybullets, player, killPlayer, null, this);
 
             // Badguybullets bounce from each other (not working, why?)
 
@@ -265,9 +266,12 @@
                     badguy.setCollideWorldBounds(true);
                     badguy.setVelocity(40, 1);
                     badguy.allowGravity = false;
+
+                    // badguy.on('hitBorder', () => {
+                    //     console.log('wall hit')
+                    // }, this);
                 }
 
-        
             }
 
             timeToShoot = this.time.addEvent({
@@ -314,6 +318,9 @@
 
                     shoot();
 
+            // badguys.children.entries[badguys.children.entries.length - 1].anims.play('turn');
+            // badguys.children.entries[0].anims.play('turn');
+
                 }
             } else {
                 playerShootSwitch = false;
@@ -336,22 +343,7 @@
             } else {
                 soundSwitch = false;
             }
-
-            // if (cursors.down.isDown) {
-
-            // badguyShoot();
-
-            // }
-
-            // if (!timeToShoot) {
-            //     setTimeout(badguyShoot(),1000);
-            // }
-
-            // if (timeToShoot) {
-            //     badguyShoot()
-            // }
-
-
+            
             game.renderer.resize(window.innerWidth, window.innerHeight, 1.0);
 
             // Enemy movement
@@ -360,7 +352,27 @@
             // badguy.setVelocity(20, 0);
             // badguy.allowGravity = false;
 
+
+            // If one enemy hits wall, all enemies switch direction
+
+            // badguys.children.entries[badguys.children.entries.length - 1].anims.play('turn');
+            // badguys.children.entries[0].anims.play('turn');
+
+            if (badguys.children.entries[badguys.children.entries.length - 1].body.position.x > (window.innerWidth - 54) || badguys.children.entries[0].body.position.x < (11)) {
+                
+                console.log('wall hit')
+                console.log(badguys.children.entries[0].body.gameObject.body.velocity)
+
+                for (let n = 0; n < badguys.children.entries.length; n++) {
+
+                    badguys.children.entries[n].setVelocityX(badguys.children.entries[n].body.gameObject.body.velocity.x * -1);
+                
+                }
+            }
+
         }
+
+
 
         function shoot() {
 
@@ -395,8 +407,6 @@
             badguybullet.setSize(100, 100);
             badguybullet.anims.play('badguybullet' + rnd, true);
 
-            //badguybullet.setBounce(1);
-
             badguybullet.setCollideWorldBounds(false);
             badguybullet.setVelocity(0, 50);
             badguybullet.allowGravity = false;
@@ -409,7 +419,6 @@
                 callbackScope: this,
                 loop: true
             });
-
         }
 
         // function badguyShootSwitch() {
@@ -456,7 +465,7 @@
             }
 
             // Accelerate enemies after 5 shots
-            
+
             badguysKilled += 1;
 
             if (badguysKilled === 5) {
