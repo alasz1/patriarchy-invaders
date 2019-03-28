@@ -85,6 +85,7 @@
         var level = 0;
         var changelevel;
         var changelevel2;
+        var playerLives = 3;
 
         //var StartScreen = new Phaser.Scene(config)
 
@@ -100,7 +101,7 @@
 
 
         function preload() {
-
+            
             level += 1;
             badguysKilled = 0;
             totalBadguysKilled = 0;
@@ -269,11 +270,11 @@
 
             // Sound config
 
-            soundText = this.add.text(166, 6, 'SOUND: ON', { fontFamily: 'Arcadepix', fontSize: '20px', fill: '#fff' });
+            soundText = this.add.text(186, 6, 'SOUND: ON', { fontFamily: 'Arcadepix', fontSize: '20px', fill: '#fff' });
 
             // Level
 
-            levelText = this.add.text(326, 6, 'LEVEL: ' + level, { fontFamily: 'Arcadepix', fontSize: '20px', fill: '#fff' });
+            levelText = this.add.text(346, 6, 'LEVEL: ' + level, { fontFamily: 'Arcadepix', fontSize: '20px', fill: '#fff' });
 
             // Text below
 
@@ -324,7 +325,7 @@
                     badguy.anims.play('badguy', true);
                     badguy.setBounce(1);
                     badguy.setCollideWorldBounds(true);
-                    badguy.setVelocity(40 + (10 * level - 10), 1);
+                    badguy.setVelocity(40 + (30 * level - 30), 1);
                     badguy.allowGravity = false;
 
                     // badguy.on('hitBorder', () => {
@@ -479,8 +480,8 @@
             if (changelevel) {
                 this.scene.pause();
 
-                this.add.text(window.innerWidth / 2 - 142, window.innerHeight / 2 + 2, 'LEVEL COMPLETE', { fontFamily: 'Arcadepix', fontSize: '40px', fill: 'black' });
-                this.add.text(window.innerWidth / 2 - 140, window.innerHeight / 2, 'LEVEL COMPLETE', { fontFamily: 'Arcadepix', fontSize: '40px', fill: '#1FB58F' });
+                this.add.text(window.innerWidth / 2 - 192, window.innerHeight / 2 + 2, 'LEVEL COMPLETE', { fontFamily: 'Arcadepix', fontSize: '40px', fill: 'black' });
+                this.add.text(window.innerWidth / 2 - 190, window.innerHeight / 2, 'LEVEL COMPLETE', { fontFamily: 'Arcadepix', fontSize: '40px', fill: '#fff' });
                 //this.time.delayedCall(2000, onEvent, null, this);
 
                 setTimeout(() => {
@@ -489,7 +490,7 @@
                     //player.setTint(0xff0000);
                 }, 3000);
 
-                
+
 
                 console.log(changelevel2)
                 changelevel = false;
@@ -604,7 +605,7 @@
             // Change level when all bad guys killed
 
             console.log('total killed: ' + totalBadguysKilled)
-            if (totalBadguysKilled === 2) {
+            if (totalBadguysKilled === 36) {
                 changelevel = true;
                 // this.add.text(window.innerWidth / 2 - 142, window.innerHeight / 2 + 2, 'LEVEL COMPLETE', { fontFamily: 'Arcadepix', fontSize: '40px', fill: 'black' });
                 // this.add.text(window.innerWidth / 2 - 140, window.innerHeight / 2, 'LEVEL COMPLETE', { fontFamily: 'Arcadepix', fontSize: '40px', fill: '#1FB58F' });
@@ -637,14 +638,27 @@
         }
 
         function killPlayer(badguybullet, player) {
-            this.physics.pause();
-            badguybullet.disableBody(true, true);
-            player.anims.play('explode3', true);
-            setTimeout(function () { player.disableBody(true) }, 400);
-            if (soundConfig) {
-                this.sound.play('hit2');
-            }
-            gameOver = true;
+
+            playerLives -= 1;
+
+            // if (playerLives === 0) {
+                this.physics.pause();
+                badguybullet.disableBody(true, true);
+                player.anims.play('explode3', true);
+                setTimeout(function () { player.disableBody(true) }, 400);
+                if (soundConfig) {
+                    this.sound.play('hit2');
+                }
+                gameOver = true;
+            // } else {
+            //     if (soundConfig) {
+            //         this.sound.play('hit');
+            //     }
+            //     player.setTint(0xff0000);
+            //     setTimeout(() => {
+            //         player.setTint(none);
+            //     }, 3000);
+            // }
         }
 
         function badguyHitsGround(badguy, ground) {
