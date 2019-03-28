@@ -12,13 +12,19 @@
             font-weight: 400;
             font-weight: normal;
         }
+        @font-face {
+            font-family: Silkscreen;
+            src: url('assets/slkscr.TTF');
+            font-weight: 400;
+            font-weight: normal;
+        }
 
         body {
             margin: 0;
         }
 
         * {
-            font-family: Arcadepix;
+            font-family: Silkscreen, Arcadepix;
 
         }
     </style>
@@ -50,8 +56,10 @@
                 preload: preload,
                 create: create,
                 update: update,
-                resize: resize
+                resize: resize,
+
             }
+
         };
 
         var player;
@@ -71,16 +79,29 @@
         var rndTimer = 1000;
         var timeToShoot;
         var badguysKilled = 0;
+        var gameCanStart;
+
+        //var StartScreen = new Phaser.Scene(config)
 
         var game = new Phaser.Game(config);
 
+        // StartScreen.preload = function () {
+        //     this.load.image('sky', 'assets/sky.png');
+        // }
+        // StartScreen.create = function () {
+        //     this.add.image(400, 300, 'sky');
+        // }
+        
+        
+
         function preload() {
+
 
             // Load graphics
 
             this.load.image('sky', 'assets/sky.png');
             this.load.image('ground', 'assets/platform.png');
-            this.load.image('hatespeech', 'assets/hatespeech.png');
+            //this.load.image('hatespeech', 'assets/hatespeech.png');
             this.load.image('playerbullet', 'assets/heart.png');
             this.load.spritesheet('player', 'assets/hero-big.png', { frameWidth: 48, frameHeight: 60 });
             this.load.spritesheet('player-idle', 'assets/hero-idle-big.png', { frameWidth: 48, frameHeight: 60 });
@@ -109,10 +130,8 @@
 
         function create() {
 
-            //this.state.start('MainMenu');
-
             //  A simple background for our game
-            this.add.image(400, 300, 'sky');
+            this.add.image(window.innerWidth / 2, 300, 'sky').setScale((window.innerWidth / 100), 1);
 
             // Set world boundaries based on initial screen size
 
@@ -300,11 +319,48 @@
                 loop: true
             });
 
+            //this.startmenuBox.create(100, 100, 'ground').setScale((window.innerWidth / 2), 1).refreshBody();
+
         }
 
         function update() {
+            
+            
+
+            if (!gameCanStart) {
+            timeToShoot.paused = true;
+            this.add.text(window.innerWidth / 2 - 280, window.innerHeight - 100, 'Press SPACE to start', { fontFamily: 'Arcadepix', fontSize: '40px', fill: '#fff' });
+            this.add.text(window.innerWidth / 2 - 220, window.innerHeight - 50, 'Press SHIFT to turn sounds on/off', { fontFamily: 'Silkscreen', fontSize: '20px', fill: '#fff' });
+
+            }
+
+            if (!gameCanStart && cursors.space.isDown) {
+                timeToShoot.paused = false;
+                gameCanStart = true;
+                this.add.text(window.innerWidth / 2 - 280, window.innerHeight - 100, '                    ', { fontFamily: 'Arcadepix', fontSize: '40px', fill: '#898989', backgroundColor: '#898989' });
+                this.add.text(window.innerWidth / 2 - 220, window.innerHeight - 50, '                            ', { fontFamily: 'Silkscreen', fontSize: '40px', fill: '#898989', backgroundColor: '#898989' });
+
+                this.physics.resume()
+            } 
+
+            if (!gameCanStart) {
+                this.physics.pause();
+            }
+
+
+
+
             if (gameOver) {
-                return;
+
+                timeToShoot.reset({
+                    paused: true
+                });
+
+                //return;
+                // Display "Game Over" at center of the screen
+                this.add.text(window.innerWidth / 2 - 142, window.innerHeight / 2 + 2, 'GAME OVER', { fontFamily: 'Arcadepix', fontSize: '40px', fill: 'black' });
+                this.add.text(window.innerWidth / 2 - 140, window.innerHeight / 2, 'GAME OVER', { fontFamily: 'Arcadepix', fontSize: '40px', fill: '#ff63e7' });
+
             }
 
             // Map control keys
@@ -391,8 +447,6 @@
 
 
         }
-
-
 
         function shoot() {
 
@@ -537,8 +591,8 @@
             badguybullet.anims.play('explode2', true);
             setTimeout(function () { badguybullet.disableBody(true, true) }, 400);
             if (soundConfig) {
-                    this.sound.play('hit');
-                }
+                this.sound.play('hit');
+            }
         }
 
         //         function animComplete (animation, frame)
